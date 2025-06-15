@@ -2,11 +2,9 @@ package com.sample.journalApp.services;
 
 import com.sample.journalApp.models.AppUser;
 import com.sample.journalApp.repositories.AppUserRepository;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AppUserService {
@@ -14,14 +12,14 @@ public class AppUserService {
     @Autowired
     private AppUserRepository appUserRepository;
 
-//    @Autowired
-//    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public boolean registerUser(AppUser user) {
         if(appUserRepository.findByUsername(user.getUsername()).isPresent()) {
             return false;
         }
-        //user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         appUserRepository.save(user);
         return true;
     }

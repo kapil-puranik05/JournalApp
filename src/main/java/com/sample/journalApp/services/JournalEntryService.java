@@ -6,7 +6,6 @@ import com.sample.journalApp.repositories.JournalEntryRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,7 +18,6 @@ public class JournalEntryService {
     @Autowired
     private AppUserService appUserService;
 
-    @Transactional
     public boolean registerEntry(JournalEntry journalEntry,String username) {
         AppUser user = appUserService.getUser(username);
         if(user != null) {
