@@ -42,4 +42,12 @@ public class AppUserService {
         return true;
     }
 
+    public boolean deleteUser(String username) {
+        if(appUserRepository.findByUsername(username).isEmpty()) {
+            return false;
+        }
+        appUserRepository.deleteByUsername(username);
+        return true;
+    }
+
 }

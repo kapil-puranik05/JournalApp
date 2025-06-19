@@ -12,4 +12,5 @@ public interface AppUserRepository extends MongoRepository<AppUser, ObjectId> {
 
     Optional<AppUser> findByUsername(String username);
 
+    void deleteByUsername(String username);
 }
