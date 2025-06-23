@@ -21,7 +21,7 @@ public class AppUserController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         AppUser user = appUserService.getUser(username);
-        if(user != null) {
+        if(user != null && user.getJournalEntries() != null) {
             return new ResponseEntity<>(user.getJournalEntries(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);

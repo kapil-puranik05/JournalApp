@@ -40,9 +40,11 @@ public class JournalEntryController {
     public ResponseEntity<?> getEntry(@PathVariable ObjectId id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         AppUser appUser = appUserService.getUser(auth.getName());
-        for(JournalEntry journalEntry : appUser.getJournalEntries()) {
-            if(journalEntry.getId().equals(id)) {
-                return new ResponseEntity<>(journalEntry, HttpStatus.OK);
+        if(appUser != null) {
+            for(JournalEntry journalEntry : appUser.getJournalEntries()) {
+                if(journalEntry.getId().equals(id)) {
+                    return new ResponseEntity<>(journalEntry, HttpStatus.OK);
+                }
             }
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -62,8 +64,15 @@ public class JournalEntryController {
 
     @PutMapping("/{id}")
     public ResponseEntity<String> updateEntry(@RequestBody JournalEntry journalEntry,@PathVariable ObjectId id) {
-        if(journalEntryService.updateEntry(journalEntry,id)) {
-            return new ResponseEntity<>("Updated",HttpStatus.OK);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        AppUser appUser = appUserService.getUser(auth.getName());
+        if(appUser != null) {
+            JournalEntry curr = journalEntryService.fetchEntry(id);
+            if(appUser.getJournalEntries().contains(curr)) {
+                if(journalEntryService.updateEntry(journalEntry,id)) {
+                    return new ResponseEntity<>("Updated",HttpStatus.OK);
+                }
+            }
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
@@ -72,7 +81,7 @@ public class JournalEntryController {
     public ResponseEntity<String> deleteEntry(@PathVariable ObjectId id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(journalEntryService.deleteEntry(id, auth.getName())) {
-            return new ResponseEntity<>("Updated",HttpStatus.OK);
+            return new ResponseEntity<>("Deleted",HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }

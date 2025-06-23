@@ -27,4 +27,12 @@ public class PublicController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
+    @PostMapping("/add-admin")
+    public ResponseEntity<String> registerAdmin(@RequestBody AppUser appUser) {
+        if(appUserService.registerAdmin(appUser)) {
+            return new ResponseEntity<>("Added",HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
 }

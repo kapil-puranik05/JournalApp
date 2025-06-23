@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class JournalEntryService {
@@ -48,22 +49,24 @@ public class JournalEntryService {
         }
         oldEntry.setTitle(journalEntry.getTitle() != null && !journalEntry.getTitle().equals("") ? journalEntry.getTitle() : oldEntry.getTitle());
         oldEntry.setContent(journalEntry.getContent() != null && !journalEntry.getContent().equals("") ? journalEntry.getContent() : oldEntry.getContent());
+        journalEntryRepository.save(oldEntry);
         return true;
     }
 
     public boolean deleteEntry(ObjectId id,String username) {
-        if(!journalEntryRepository.existsById(id)) {
+        Optional<JournalEntry> journalEntryOpt = journalEntryRepository.findById(id);
+        AppUser user = appUserService.getUser(username);
+        if(journalEntryOpt.isEmpty() || user == null) {
             return false;
         }
-        AppUser user = appUserService.getUser(username);
-        for(JournalEntry journalEntry : user.getJournalEntries()) {
-            if(journalEntry.getId().equals(id)) {
-                user.getJournalEntries().remove(journalEntry);
-                break;
-            }
+        JournalEntry journalEntry = journalEntryOpt.get();
+        boolean removed = user.getJournalEntries().removeIf(entry -> entry.getId().equals(journalEntry.getId()));
+        if (removed) {
+            appUserRepository.save(user);
+            journalEntryRepository.deleteById(id);
+            return true;
         }
-        journalEntryRepository.deleteById(id);
-        return true;
+        return false;
     }
 
 }

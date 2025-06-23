@@ -30,6 +30,16 @@ public class AppUserService {
         return true;
     }
 
+    public boolean registerAdmin(AppUser admin) {
+        if(appUserRepository.findByUsername(admin.getUsername()).isPresent()) {
+            return false;
+        }
+        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
+        admin.setRoles(new ArrayList<>(Arrays.asList("ADMIN")));
+        appUserRepository.save(admin);
+        return true;
+    }
+
     public AppUser getUser(String username) {
         if(appUserRepository.findByUsername(username).isEmpty()) {
             return null;
@@ -40,26 +50,19 @@ public class AppUserService {
     public boolean updateUser(String username, AppUser user) {
         Optional<AppUser> existingUserOpt = appUserRepository.findByUsername(username);
         if (existingUserOpt.isEmpty()) return false;
-
         AppUser existingUser = existingUserOpt.get();
-
-        // Password update — only if non-null and non-empty
         if (user.getPassword() != null && !user.getPassword().isBlank()) {
             existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
         }
-
-        // Journal entries update — only if provided
         if (user.getJournalEntries() != null && !user.getJournalEntries().isEmpty()) {
             existingUser.setJournalEntries(user.getJournalEntries());
         }
-
-        // Roles — always ensure they're preserved or refreshed
         if (user.getRoles() != null && !user.getRoles().isEmpty()) {
             existingUser.setRoles(user.getRoles());
-        } else if (existingUser.getRoles() == null || existingUser.getRoles().isEmpty()) {
+        }
+        else if (existingUser.getRoles() == null || existingUser.getRoles().isEmpty()) {
             existingUser.setRoles(List.of("USER"));
         }
-
         appUserRepository.save(existingUser);
         return true;
     }
@@ -70,6 +73,10 @@ public class AppUserService {
         }
         appUserRepository.deleteByUsername(username);
         return true;
+    }
+
+    public List<AppUser> getAllUsers() {
+        return appUserRepository.findAll();
     }
 
 }
