@@ -6,6 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 @Service
 public class AppUserService {
 
@@ -20,6 +25,7 @@ public class AppUserService {
             return false;
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRoles(new ArrayList<>(Arrays.asList("USER")));
         appUserRepository.save(user);
         return true;
     }
@@ -31,14 +37,30 @@ public class AppUserService {
         return appUserRepository.findByUsername(username).get();
     }
 
-    public boolean updateUser(String username,AppUser user) {
-        if(appUserRepository.findByUsername(username).isEmpty()) {
-            return false;
+    public boolean updateUser(String username, AppUser user) {
+        Optional<AppUser> existingUserOpt = appUserRepository.findByUsername(username);
+        if (existingUserOpt.isEmpty()) return false;
+
+        AppUser existingUser = existingUserOpt.get();
+
+        // Password update — only if non-null and non-empty
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
         }
-        AppUser old = appUserRepository.findByUsername(username).get();
-        old.setPassword(!user.getPassword().isEmpty() ? user.getPassword() : old.getPassword());
-        old.setJournalEntries(!user.getJournalEntries().isEmpty() && user.getJournalEntries() != null ? user.getJournalEntries() : old.getJournalEntries());
-        appUserRepository.save(old);
+
+        // Journal entries update — only if provided
+        if (user.getJournalEntries() != null && !user.getJournalEntries().isEmpty()) {
+            existingUser.setJournalEntries(user.getJournalEntries());
+        }
+
+        // Roles — always ensure they're preserved or refreshed
+        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
+            existingUser.setRoles(user.getRoles());
+        } else if (existingUser.getRoles() == null || existingUser.getRoles().isEmpty()) {
+            existingUser.setRoles(List.of("USER"));
+        }
+
+        appUserRepository.save(existingUser);
         return true;
     }
 

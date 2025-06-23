@@ -2,6 +2,7 @@ package com.sample.journalApp.services;
 
 import com.sample.journalApp.models.AppUser;
 import com.sample.journalApp.models.JournalEntry;
+import com.sample.journalApp.repositories.AppUserRepository;
 import com.sample.journalApp.repositories.JournalEntryRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +19,15 @@ public class JournalEntryService {
     @Autowired
     private AppUserService appUserService;
 
+    @Autowired
+    private AppUserRepository appUserRepository;
+
     public boolean registerEntry(JournalEntry journalEntry,String username) {
         AppUser user = appUserService.getUser(username);
         if(user != null) {
             JournalEntry saved = journalEntryRepository.save(journalEntry);
             user.getJournalEntries().add(saved);
-            appUserService.updateUser(user.getUsername(),user);
+            appUserRepository.save(user);
             return true;
         }
         return false;

@@ -22,7 +22,7 @@ public class AppUserController {
         String username = auth.getName();
         AppUser user = appUserService.getUser(username);
         if(user != null) {
-            return new ResponseEntity<>(user, HttpStatus.OK);
+            return new ResponseEntity<>(user.getJournalEntries(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }

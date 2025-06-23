@@ -25,30 +25,35 @@ public class JournalEntryController {
     @Autowired
     private AppUserService appUserService;
 
-    @GetMapping("/id")
-    public ResponseEntity<?> getEntry(@PathVariable String id) {
-        JournalEntry journalEntry = journalEntryService.fetchEntry(new ObjectId(id));
-        if(journalEntry != null) {
-            return new ResponseEntity<>(journalEntry, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
     @GetMapping
     public ResponseEntity<?> getUserEntries() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         AppUser user = appUserService.getUser(auth.getName());
-        List<JournalEntry> all = journalEntryService.fetchEntries();
+        List<JournalEntry> all = user.getJournalEntries();
         if(all != null && !all.isEmpty()) {
             return new ResponseEntity<>(all,HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping("/{username}")
+    @GetMapping("id/{id}")
+    public ResponseEntity<?> getEntry(@PathVariable ObjectId id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        AppUser appUser = appUserService.getUser(auth.getName());
+        for(JournalEntry journalEntry : appUser.getJournalEntries()) {
+            if(journalEntry.getId().equals(id)) {
+                return new ResponseEntity<>(journalEntry, HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @PostMapping
     public ResponseEntity<String> postEntry(@RequestBody JournalEntry journalEntry) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         journalEntry.setDate(LocalDateTime.now());
+        System.out.println("Auth name: " + auth.getName());
+        System.out.println("Authorities: " + auth.getAuthorities());
         if(journalEntryService.registerEntry(journalEntry, auth.getName())) {
             return new ResponseEntity<>("Added",HttpStatus.OK);
         }
